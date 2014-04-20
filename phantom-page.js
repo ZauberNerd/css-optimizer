@@ -128,7 +128,8 @@ function createInstance(callback) {
     }, {
         parameters: {
             'ignore-ssl-errors': 'yes',
-            'ssl-protocol': 'any'
+            'ssl-protocol': 'any',
+            'web-security': 'no'
         }
     });
 }
