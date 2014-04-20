@@ -1,0 +1,17 @@
+{
+  "name": "atf-css",
+  "version": "0.0.0",
+  "description": "A module to split CSS into CSS which is above-the-fold (ATF) and CSS which can be loaded asynchronous.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Bjoern Brauer <bjoernjohannes@gmail.com>",
+  "license": "MIT",
+  "dependencies": {
+    "css": "~1.6.0",
+    "phantomjs": "~1.9.7-1",
+    "node-phantom-simple": "~1.1.0",
+    "colors": "~0.6.2"
+  }
+}
