@@ -13,11 +13,11 @@ function increaseVerbosity(v, total) { return total + 1; }
 
 program
     .version(package.version)
-    .option('--url <url>', 'The URL of the site for which optimized CSS ' +
+    .option('-u, --url <url>', 'The URL of the site for which optimized CSS ' +
             'should be generated')
     .option('--viewport [widthxheight]', 'The viewport to emulate ' +
             '(default is 320x640)', viewPort, [320,640])
-    .option('--delay [seconds]', 'Time to wait after DOMContentLoaded ' +
+    .option('-d, --delay [seconds]', 'Time to wait after DOMContentLoaded ' +
             'event in seconds', 0)
     .option('-i, --interactive', 'Decide manually which elements are required')
     .option('-v, --verbose', 'More debug output', increaseVerbosity, 0);
