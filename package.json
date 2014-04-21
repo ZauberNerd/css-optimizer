@@ -13,6 +13,7 @@
     "phantomjs": "~1.9.7-1",
     "node-phantom-simple": "~1.1.0",
     "colors": "~0.6.2",
-    "commander": "~2.2.0"
+    "commander": "~2.2.0",
+    "jsdom": "~0.10.5"
   }
 }

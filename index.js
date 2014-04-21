@@ -1,20 +1,67 @@
 /*jshint node: true, strict: false */
 
-var fs          = require('fs'),
-    css         = require('css'),
-    program     = require('commander'),
-    phantomPage = require('./phantom-page.js');
+var program     = require('commander'),
+    CSS         = require('./lib/css.js'),
+    Phantom     = require('./lib/phantom.js'),
+    package     = require('./package.json');
+
 
 
 function viewPort(str) { return str.split('x').map(Number); }
+function increaseVerbosity(v, total) { return total + 1; }
+
 
 program
-    .version('0.0.1')
-    .option('--url <url>', 'The URL of the site to analyze')
-    .option('--css <path>', 'Path to the original CSS file on disk')
-    .option('--viewport <widthxheight>', 'The viewport', viewPort, [320,640])
+    .version(package.version)
+    .option('--url <url>', 'The URL of the site for which optimized CSS ' +
+            'should be generated')
+    .option('--viewport [widthxheight]', 'The viewport to emulate ' +
+            '(default is 320x640)', viewPort, [320,640])
+    .option('--delay [seconds]', 'Time to wait after DOMContentLoaded ' +
+            'event in seconds', 0)
     .option('-i, --interactive', 'Decide manually which elements are required')
-    .parse(process.argv);
+    .option('-v, --verbose', 'More debug output', increaseVerbosity, 0);
+
+
+program.on('--help', function () {
+    console.log('  Examples:');
+    console.log('');
+    console.log('    $ index --url https://www.google.com --viewport 1024x768');
+    console.log('');
+});
+
+
+program.parse(process.argv);
+
 
 
 if (process.argv.length < 3) { program.help(); }
+
+
+
+function ATF(args) {
+    var viewport = { width: args.viewport[0], height: args.viewport[1] };
+
+    this.css     = new CSS(args.url);
+    this.phantom = new Phantom(args.url, viewport, args.delay);
+
+    this.css.on('domReady', function () {
+        console.log('domReady');
+    });
+
+    this.css.on('cssReady', function () {
+        console.log('cssReady');
+    });
+
+    this.css.on('astReady', function () {
+        console.log('astReady');
+    });
+
+    this.phantom.on('selectorsReady', function () {
+        console.log('selectorsReady');
+    });
+}
+
+
+
+new ATF(program);
