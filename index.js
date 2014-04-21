@@ -49,16 +49,16 @@ function ATF(args) {
         console.log('domReady');
     });
 
-    this.css.on('cssReady', function () {
-        console.log('cssReady');
+    this.css.on('cssLoaded', function () {
+        console.log('cssLoaded');
     });
 
-    this.css.on('astReady', function () {
-        console.log('astReady');
+    this.css.on('astGenerated', function () {
+        console.log('astGenerated');
     });
 
-    this.phantom.on('selectorsReady', function () {
-        console.log('selectorsReady');
+    this.phantom.on('selectorsReceived', function () {
+        console.log('selectorsReceived');
     });
 }
 
