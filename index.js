@@ -1,7 +1,8 @@
 /*jshint node: true, strict: false */
 
 var program     = require('commander'),
-    CSS         = require('./lib/css.js'),
+    DOM         = require('./lib/dom.js'),
+    css         = require('css'),
     Phantom     = require('./lib/phantom.js'),
     package     = require('./package.json');
 
@@ -42,22 +43,30 @@ if (process.argv.length < 3) { program.help(); }
 function ATF(args) {
     var viewport = { width: args.viewport[0], height: args.viewport[1] };
 
-    this.css     = new CSS(args.url);
+    this.dom     = new DOM(args.url);
     this.phantom = new Phantom(args.url, viewport, args.delay);
 
-    this.css.on('domReady', function () {
-        console.log('domReady');
-    });
+    this.ast       = null;
+    this.selectors = null;
+    this.isBusy    = false;
 
-    this.css.on('cssLoaded', function () {
-        console.log('cssLoaded');
-    });
 
-    this.css.on('astGenerated', function () {
+    this.dom.on('cssLoaded', function (stylesheets) {
+        this.ast = css.parse(stylesheets);
+        if (!this.isBusy && this.selectors) {
+            this.isBusy = true;
+            this.processCSS(this.selectors, this.ast);
+        }
         console.log('astGenerated');
     });
 
-    this.phantom.on('selectorsReceived', function () {
+    this.phantom.on('selectorsReceived', function (selectors) {
+        var s = selectors.map(function (s) { return s.replace('::', ':'); });
+        this.selectors = s;
+        if (!this.isBusy && this.ast) {
+            this.isBusy = true;
+            this.processCSS(this.selectors, this.ast);
+        }
         console.log('selectorsReceived');
     });
 }
