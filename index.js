@@ -1,8 +1,9 @@
 /*jshint node: true, strict: false */
 
 var program     = require('commander'),
-    DOM         = require('./lib/dom.js'),
+    fs          = require('fs'),
     css         = require('css'),
+    DOM         = require('./lib/dom.js'),
     Phantom     = require('./lib/phantom.js'),
     package     = require('./package.json');
 
@@ -57,8 +58,7 @@ function ATF(args) {
             this.isBusy = true;
             this.processCSS(this.selectors, this.ast);
         }
-        console.log('astGenerated');
-    });
+    }.bind(this));
 
     this.phantom.on('selectorsReceived', function (selectors) {
         var s = selectors.map(function (s) { return s.replace('::', ':'); });
@@ -67,9 +67,71 @@ function ATF(args) {
             this.isBusy = true;
             this.processCSS(this.selectors, this.ast);
         }
-        console.log('selectorsReceived');
-    });
+    }.bind(this));
 }
+
+
+ATF.prototype.processCSS = function (selectors, ast) {
+    var allowed  = ['charset', 'keyframes', 'keyframe'],
+        rePseudo = /::?before|after/i;
+
+    function _trimSelector(selector) {
+        selector = selector.trim();
+        selector = selector.replace(/\s+>\s+/, '>');
+        selector = selector.replace(/\s+\+\s+/, '+');
+        return selector.replace(/\s+~\s+/, '~');
+    }
+
+    function _matchesSelector(selector) {
+        selector = _trimSelector(selector);
+
+        var match = rePseudo.exec(selector);
+
+        // sometimes phantomjs doesn't return all pseudo element selectors
+        // so we need to check if the selectors match without the pseudo part.
+        if (match) { selector = selector.slice(0, match.index); }
+        if (selectors.indexOf(selector) > -1) { return true; }
+
+        return false;
+    }
+
+    function _ruleAllowed(rule) {
+        if (allowed.indexOf(rule.type) > -1) { return true; }
+
+        if (rule.type === 'rule') {
+            return rule.selectors.some(_matchesSelector);
+        } else if (rule.type === 'media') {
+            return rule.rules.some(_ruleAllowed);
+        }
+
+        return false;
+    }
+
+    function _matchingSelectors(rules, rule) {
+        if (rule.type !== 'rule' && rule.type !== 'media') { return rules; }
+        if (rule.type === 'rule') {
+            rule.selectors = rule.selectors.filter(_matchesSelector);
+            if (rule.selectors.length === 0) { return rules; }
+        } else if (rule.type === 'media') {
+            rule.rules = rule.rules.reduce(_matchingSelectors, []);
+        }
+        return rules.concat(rule);
+    }
+
+
+    selectors = selectors.map(_trimSelector);
+
+
+    var rules = ast.stylesheet.rules
+        .filter(_ruleAllowed)
+        .reduce(_matchingSelectors, []);
+
+
+    var inlineAst = { type: 'stylesheet', stylesheet: { rules: rules } };
+
+
+    fs.writeFileSync('./inline.css', css.stringify(inlineAst));
+};
 
 
 
